@@ -14,6 +14,7 @@ from mmcv.utils import DictAction
 from depth.apis import multi_gpu_test, single_gpu_test
 from depth.datasets import build_dataloader, build_dataset
 from depth.models import build_depther
+from attack import evalute_attack_accuracy
 
 import numpy as np
 
@@ -102,11 +103,15 @@ def main():
     cfg.data.test.test_mode = True
 
     # init distributed env first, since logger depends on the dist info.
-    if args.launcher == 'none':
-        distributed = False
-    else:
-        distributed = True
-        init_dist(args.launcher, **cfg.dist_params)
+    # if args.launcher == 'none':
+    #     distributed = False
+    # else:
+    #     distributed = True
+    #     init_dist(args.launcher, **cfg.dist_params)
+    #     print("***********************")
+    #     print(args.launcher)
+        # print(**cfg.dist_params)
+    distributed = False
 
     # build the dataloader
     # TODO: support multiple images per gpu (only minor changes are needed)
@@ -152,8 +157,11 @@ def main():
     else:
         tmpdir = None
 
+    # evalute_attack_accuracy(model, data_loader)
+
     if not distributed:
         model = MMDataParallel(model, device_ids=[0])
+        evalute_attack_accuracy(model, data_loader)
         results = single_gpu_test(
             model,
             data_loader,
